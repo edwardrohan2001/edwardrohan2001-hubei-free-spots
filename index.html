@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -145,7 +145,7 @@
   .rows{margin-top:12px;border-top:1px dashed var(--line);padding-top:11px}
   .row{display:flex;gap:10px;font-size:13.5px;padding:3px 0}
   .row .k{flex:0 0 74px;color:var(--ink-3);font-weight:500}
-  .row .v{flex:1;color:var(--ink-2)}
+  .row .v{flex:1;color:var(--ink-2);min-width:0;overflow-wrap:anywhere;word-break:break-word}
   .row .v strong{color:var(--ink);font-weight:600}
   .warn{
     margin-top:10px;padding:9px 11px;border-radius:8px;font-size:13px;
@@ -176,6 +176,36 @@
     .tagline{font-size:13px}
     .row .k{flex:0 0 64px}
     .card-top{flex-direction:column;gap:8px}
+  }
+
+  /* 窄屏（手机）适配：防止长文本溢出导致横向截断 */
+  @media (max-width:480px){
+    .wrap{padding:0 14px}
+    body{font-size:14.5px}
+    .brand h1{font-size:18px}
+    .tagline{font-size:12.5px;line-height:1.65}
+    .panel{padding:15px;border-radius:12px}
+    .card{padding:14px;border-radius:11px}
+    .card h3{font-size:15.5px;line-height:1.4}
+    .city{margin-left:0;display:inline-block;margin-top:3px;vertical-align:baseline}
+    .row{flex-direction:column;gap:2px;padding:5px 0}
+    .row .k{flex:none;font-size:12px;color:#8d857a}
+    .row .v{font-size:13.5px}
+    .chip{padding:6px 11px;font-size:12.5px}
+    .btn{padding:10px 18px;font-size:14.5px}
+    .actions{gap:8px}
+    /* 关键：强制长串与中文长句换行，避免撑破容器 */
+    .card, .card *, .tagline, .row .v{
+      overflow-wrap:anywhere;
+      word-break:break-word;
+      min-width:0;
+    }
+    .card-top{flex-direction:column;gap:6px;align-items:stretch}
+    .badges{gap:5px}
+    .badge{font-size:11px;padding:2px 7px}
+    .warn{font-size:12.5px;padding:8px 10px}
+    .src{font-size:11px}
+    .empty{padding:38px 16px}
   }
 </style>
 </head>
