@@ -1,0 +1,765 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>湖北免费景点雷达 — 出门前先查清楚</title>
+<style>
+  :root{
+    --ink:#161412;
+    --ink-2:#3d3833;
+    --ink-3:#6f675e;
+    --line:#e3ddd3;
+    --paper:#faf7f1;
+    --card:#ffffff;
+    --free:#1f6f43;
+    --free-bg:#e8f3ec;
+    --partial:#9a5b00;
+    --partial-bg:#fdf1dd;
+    --ticket:#a3341f;
+    --ticket-bg:#fbe9e4;
+    --accent:#b8451f;
+    --accent-2:#1d4e89;
+    --shadow:0 1px 2px rgba(22,20,18,.05), 0 8px 24px -12px rgba(22,20,18,.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.6;
+    font-size:15px;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  /* ── 头部 ── */
+  header{
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#fffdf9 0%,var(--paper) 100%);
+    padding:26px 0 22px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(ellipse 70% 120% at 88% 0%, rgba(184,69,31,.09), transparent 62%),
+               radial-gradient(ellipse 55% 100% at 5% 100%, rgba(29,78,137,.07), transparent 60%);
+    pointer-events:none;
+  }
+  .brand{display:flex;align-items:center;gap:11px;position:relative}
+  .brand h1{font-size:22px;letter-spacing:-.4px;font-weight:700}
+  .logo{
+    width:34px;height:34px;border-radius:9px;flex:0 0 auto;
+    background:linear-gradient(140deg,var(--accent),#8f3413);
+    display:grid;place-items:center;
+    box-shadow:0 4px 12px -4px rgba(184,69,31,.55);
+  }
+  .logo svg{width:19px;height:19px}
+  .tagline{
+    margin-top:9px;font-size:13.5px;color:var(--ink-3);
+    position:relative;max-width:640px;
+  }
+  .tagline b{color:var(--accent);font-weight:600}
+
+  /* ── 查询区 ── */
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px;margin-top:20px;box-shadow:var(--shadow);position:relative;
+  }
+  .grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px}
+  .field label{
+    display:block;font-size:12px;font-weight:600;letter-spacing:.4px;
+    color:var(--ink-3);text-transform:uppercase;margin-bottom:6px;
+  }
+  select,input[type=text]{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;
+    background:#fff;font-size:15px;font-family:inherit;color:var(--ink);
+    transition:border-color .15s, box-shadow .15s;
+  }
+  select:focus,input:focus{
+    outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(184,69,31,.12);
+  }
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .chip{
+    padding:7px 13px;border-radius:999px;border:1px solid var(--line);
+    background:#fff;font-size:13px;cursor:pointer;user-select:none;
+    transition:all .15s;color:var(--ink-2);font-family:inherit;
+  }
+  .chip:hover{border-color:#c9bfae;background:#fdfbf7}
+  .chip[aria-pressed="true"]{
+    background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600;
+  }
+  .actions{display:flex;gap:10px;margin-top:16px;align-items:center;flex-wrap:wrap}
+  .btn{
+    padding:11px 22px;border-radius:10px;border:none;cursor:pointer;
+    font-size:15px;font-weight:600;font-family:inherit;
+    background:var(--accent);color:#fff;
+    box-shadow:0 4px 14px -6px rgba(184,69,31,.7);
+    transition:transform .12s, box-shadow .15s;
+  }
+  .btn:hover{transform:translateY(-1px);box-shadow:0 7px 18px -7px rgba(184,69,31,.8)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{
+    background:transparent;color:var(--ink-3);box-shadow:none;
+    border:1px solid var(--line);font-weight:500;
+  }
+  .btn.ghost:hover{background:#fdfbf7;transform:none}
+
+  /* ── 结果区 ── */
+  .result-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    gap:12px;margin:26px 0 12px;flex-wrap:wrap;
+  }
+  .result-head h2{font-size:16px;font-weight:700}
+  .result-head .meta{font-size:13px;color:var(--ink-3)}
+  .meta .hl{color:var(--accent);font-weight:700;font-size:15px}
+
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:13px;
+    padding:16px 17px;margin-bottom:11px;box-shadow:var(--shadow);
+    animation:rise .32s cubic-bezier(.2,.7,.3,1) both;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+  .card-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+  .card h3{font-size:16.5px;font-weight:700;letter-spacing:-.2px;line-height:1.35}
+  .city{
+    font-size:11.5px;color:var(--ink-3);font-weight:600;
+    border:1px solid var(--line);border-radius:5px;padding:1.5px 6px;
+    margin-left:7px;vertical-align:2px;white-space:nowrap;
+  }
+  .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .badge{
+    font-size:11.5px;font-weight:600;padding:2.5px 8px;border-radius:5px;
+    letter-spacing:.2px;white-space:nowrap;
+  }
+  .b-free{background:var(--free-bg);color:var(--free)}
+  .b-partial{background:var(--partial-bg);color:var(--partial)}
+  .b-ticket{background:var(--ticket-bg);color:var(--ticket)}
+  .b-plain{background:#f1ede6;color:var(--ink-3)}
+  .b-book{background:#eaeef7;color:var(--accent-2)}
+  .b-timed{background:#efe7f7;color:#5b3a8c}
+  .b-cond{background:var(--partial-bg);color:var(--partial)}
+
+  .rows{margin-top:12px;border-top:1px dashed var(--line);padding-top:11px}
+  .row{display:flex;gap:10px;font-size:13.5px;padding:3px 0}
+  .row .k{flex:0 0 74px;color:var(--ink-3);font-weight:500}
+  .row .v{flex:1;color:var(--ink-2)}
+  .row .v strong{color:var(--ink);font-weight:600}
+  .warn{
+    margin-top:10px;padding:9px 11px;border-radius:8px;font-size:13px;
+    background:#fdf7ec;border-left:3px solid #d9a441;color:#6b4d12;
+  }
+  .warn b{color:#8a5c00}
+  .src{
+    margin-top:9px;padding-top:8px;border-top:1px dotted var(--line);
+    font-size:11.5px;color:#9a9186;
+  }
+
+  .empty{
+    text-align:center;padding:52px 20px;color:var(--ink-3);
+    background:var(--card);border:1px dashed var(--line);border-radius:13px;
+  }
+  .empty .big{font-size:15px;font-weight:600;color:var(--ink-2);margin-bottom:6px}
+
+  footer{
+    margin-top:34px;padding:20px 0 40px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--ink-3);line-height:1.75;
+  }
+  footer b{color:var(--ink-2)}
+  .srcs{margin-top:6px;font-size:12px;color:var(--ink-3)}
+
+  @media (max-width:720px){
+    .grid{grid-template-columns:1fr}
+    .brand h1{font-size:19px}
+    .tagline{font-size:13px}
+    .row .k{flex:0 0 64px}
+    .card-top{flex-direction:column;gap:8px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+        </svg>
+      </div>
+      <h1>湖北免费景点雷达</h1>
+    </div>
+    <p class="tagline">
+      出门前先查清楚：今天开不开、要不要预约、到底收不收费。<b>避免白跑一趟。</b>
+    </p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="panel">
+    <div class="grid">
+      <div class="field">
+        <label for="city">城市</label>
+        <select id="city"></select>
+      </div>
+      <div class="field">
+        <label for="day">出行日</label>
+        <select id="day">
+          <option value="any">不限</option>
+          <option value="1">周一</option><option value="2">周二</option>
+          <option value="3">周三</option><option value="4">周四</option>
+          <option value="5">周五</option><option value="6">周六</option>
+          <option value="0">周日</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="duration">可用时长</label>
+        <select id="duration">
+          <option value="any">不限</option>
+          <option value="60">1 小时内</option>
+          <option value="120">2 小时内</option>
+          <option value="240">半天内</option>
+          <option value="480">一整天</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="chips" id="chips">
+      <button class="chip" data-f="nobook" aria-pressed="false">免预约直接进</button>
+      <button class="chip" data-f="totally" aria-pressed="false">完全免费</button>
+      <button class="chip" data-f="indoor" aria-pressed="false">室内 / 雨天可去</button>
+      <button class="chip" data-f="night" aria-pressed="false">夜间开放</button>
+      <button class="chip" data-f="kid" aria-pressed="false">适合带娃</button>
+      <button class="chip" data-f="free" aria-pressed="false">本地人常去</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="go">查能去的</button>
+      <button class="btn ghost" id="reset">重置条件</button>
+    </div>
+  </section>
+
+  <div class="result-head">
+    <h2 id="rTitle">筛选结果</h2>
+    <div class="meta" id="rMeta"></div>
+  </div>
+
+  <div id="list"></div>
+</main>
+
+<footer class="wrap">
+  <b>数据说明：</b>本页信息来自湖北省文旅厅及各地市文旅局、博物馆官网与官方媒体公开公告，人工整理收录，<b>数据截至 2026 年 9 月</b>。
+  免费政策、预约规则、闭馆日与开放时间可能临时调整，出行前请以景区官方最新公告为准。<br>
+  <b>收录口径：</b>完全免费 / 主体免费但有局部收费项目 / 凭特定凭证免费 / 限定时段免费，四类均单独标注，不做笼统“免费”表述。<br>
+  <span id="coverage"></span>
+</footer>
+
+<script>
+/* ─────────────────────────────────────────────
+   数据层 · 湖北省 17 个市州林区免费景点
+   全部信息来自官方公告（文旅厅/市州政府/文旅局/馆方官网）
+   free 类型：
+     totally = 完全免费
+     partial = 主体免费，局部收费（须提示）
+     cond    = 凭特定凭证/条件免费
+     timed   = 限定时段免费
+   src  = 数据来源，用于页面溯源
+   note = 存疑或需注意的数据时效问题
+   ───────────────────────────────────────────── */
+
+const REGIONS = ["武汉","黄石","十堰","宜昌","襄阳","鄂州","荆门","孝感","荆州","黄冈","咸宁","随州","恩施","仙桃","潜江","天门","神农架"];
+
+const SPOTS = [
+  /* ── 武汉 ── */
+  {
+    n:"湖北省博物馆", city:"武汉", free:"totally", book:true, indoor:true, tier:1,
+    dur:180, night:false, kid:true, local:false, closed:[1],
+    hours:"9:00-17:00，16:00 停止入馆",
+    addr:"武汉市武昌区东湖路160号",
+    tip:"编钟演奏、越王勾践剑等镇馆之宝在此；失约 3 次将进入失信名单，半年内无法预约，别随手占了票不去。",
+    bookway:"官网/官方微信公众号/美团APP/湖北文旅之声/鄂汇办 五通道实名预约，最多提前 5 天，每日 0 点放新票",
+    special:"65 岁以上老人、现役军人、消防救援人员、残疾人免预约，刷身份证走绿色通道；每位免预约人员限一名陪同人员免预约",
+    src:"湖北省博物馆官网《开放服务》"
+  },
+  {
+    n:"武汉博物馆", city:"武汉", free:"totally", book:false, indoor:true, tier:2,
+    dur:120, night:false, kid:true, local:true, closed:[2],
+    hours:"9:00-17:00，16:00 停止领票入场",
+    addr:"武汉市江汉区青年路373号（汉口火车站附近）",
+    tip:"2025 年 5 月起闭馆日由周一改为周二——周一反而能进，这是最容易踩空的一条。个人参观免预约，刷身份证直接进。",
+    bookway:"个人参观免预约，刷身份证进馆",
+    special:"",
+    src:"长江网《调整“闭馆日”，武汉多家博物馆周一也能参观了》2025-05"
+  },
+  {
+    n:"辛亥革命博物院", city:"武汉", free:"partial", book:false, indoor:true, tier:2,
+    dur:150, night:false, kid:true, local:false, closed:[],
+    hours:"9:00-17:00，16:00 停止入馆",
+    addr:"武昌区武珞路1号（北区红楼）/ 首义广场南区",
+    tip:"南北馆区闭馆日错开：南区周一闭馆，北区（红楼）周二闭馆。全院无须预约、凭身份证入馆。",
+    bookway:"无须预约，凭身份证等有效证件入馆",
+    special:"2025 年 10 月起，红楼主楼“鄂军都督府旧址复原陈列”改陈后收费 20 元/人，其余展区免费。免费讲解：北区 9:30 / 14:30，南区 10:30 / 15:30",
+    closedNote:"南区周一闭馆、北区（红楼）周二闭馆，其余时间开放（法定节假日和特殊情况除外）",
+    src:"武汉文明网《辛亥革命博物院》2025-09"
+  },
+  {
+    n:"武汉革命博物馆", city:"武汉", free:"totally", book:true, indoor:true, tier:2,
+    dur:120, night:false, kid:true, local:false, closed:[1],
+    hours:"9:00-17:00，16:30 停止入馆",
+    addr:"武汉市武昌区红巷13号",
+    tip:"注意停入馆时间是 16:30，比其他馆晚半小时但仍易误判。下辖农讲所旧址、毛泽东旧居、中共五大会址等多处。",
+    bookway:"通过微信公众号“武汉革命博物馆”、美团APP 或微信小程序“武汉文旅码”预约",
+    special:"", src:"武汉文明网《武汉革命博物馆》2025-09"
+  },
+  {
+    n:"东湖绿道及听涛景区", city:"武汉", free:"totally", book:false, indoor:false, tier:2,
+    dur:240, night:false, kid:true, local:true, closed:[],
+    hours:"全天开放（景区内部场馆另有时间）",
+    addr:"武汉市武昌区东湖风景区内",
+    tip:"开放式城区绿道，无门票无预约，随时可去；适合半天以上骑行或步行。",
+    bookway:"无需预约，开放式", special:"",
+    src:"东湖风景区公开信息"
+  },
+  {
+    n:"湖北省图书馆", city:"武汉", free:"totally", book:false, indoor:true, tier:2,
+    dur:180, night:false, kid:true, local:true, closed:[1],
+    hours:"常规 9:00-17:00（周一闭馆），具体以馆方公告为准",
+    addr:"武汉市武昌区公正路25号",
+    tip:"雨天、酷暑的兜底去处，免费自习与阅览；暑期限流时需留意馆方实时公告。",
+    bookway:"免费开放，部分区域需凭有效证件",
+    special:"暑期人流大，建议开馆即到", src:"湖北省图书馆公开信息"
+  },
+
+  /* ── 襄阳 ── */
+  {
+    n:"襄阳市博物馆", city:"襄阳", free:"totally", book:true, indoor:true, tier:1,
+    dur:150, night:false, kid:true, local:false, closed:[1],
+    hours:"9:00-17:00，16:00 停止入馆",
+    addr:"襄阳市襄城区胜利街228号",
+    tip:"藏品逾 7 万件，先秦铭文青铜器是特色。注意：这里需提前预约，与武汉博物馆、荆州博物馆免预约直入不同。",
+    bookway:"须通过官方微信小程序“襄阳市博物馆”提前网上预约，凭有效证件（境外观众凭护照）免费入馆",
+    special:"", src:"China Daily 政府专栏《Xiangyang Museum》2025-03"
+  },
+
+  /* ── 宜昌 ── */
+  {
+    n:"宜昌博物馆", city:"宜昌", free:"totally", book:true, indoor:true, tier:1,
+    dur:150, night:false, kid:true, local:false, closed:[1],
+    hours:"9:00-17:00，16:00 停止入馆",
+    addr:"宜昌市伍家岗区求索路（柏临河路）",
+    tip:"国家一级博物馆、4A 级景区。团队参观须提前两天通过官网预约登记，个人参观可直接前往。",
+    bookway:"个人参观免费入馆；团队参观须提前 2 天通过官网预约登记",
+    special:"咨询电话 0717-6555525；语音导览与人工讲解为收费服务，资料在大厅免费领取",
+    src:"宜昌博物馆官网《联系我们》"
+  },
+
+  /* ── 黄石 ── */
+  {
+    n:"黄石市博物馆", city:"黄石", free:"totally", book:false, indoor:true, tier:3,
+    dur:120, night:false, kid:true, local:false, closed:[1],
+    hours:"9:00-17:00，16:00 停止发票",
+    addr:"黄石市团城山广会路12号",
+    tip:"闭馆日是“星期一及农历除夕”，除夕当天也闭馆，这在省内是少见规定。1 楼设矿业文化展与中国乒乓球成就展。",
+    bookway:"免费开放，凭有效证件入馆",
+    special:"服务电话 0714-3066376；乘车：8路、11路、12路、18路至人民广场站下车",
+    src:"黄石市博物馆官网《服务指南》"
+  },
+
+  /* ── 十堰 ── */
+  {
+    n:"十堰市博物馆", city:"十堰", free:"totally", book:false, indoor:true, tier:2,
+    dur:120, night:false, kid:true, local:false, closed:[1],
+    hours:"9:00-17:00，16:30 停止入场",
+    addr:"十堰市北京北路91号",
+    tip:"国家二级博物馆、4A 级景区，全年免费开放。设恐龙时代、仙山琼阁武当山、车与十堰等展，适合雨天兜底。",
+    bookway:"免费开放，无需预约",
+    special:"周一闭馆维护（如遇法定节假日，开放时间另行通知）；服务台 0719-8489300；提供中英韩三语语音导览、母婴室、轮椅、婴儿车等免费服务",
+    src:"十堰市政府门户网站《十堰市博物馆》"
+  },
+
+  /* ── 荆州 ── */
+  {
+    n:"荆州博物馆", city:"荆州", free:"totally", book:false, indoor:true, tier:1,
+    dur:150, night:false, kid:true, local:false, closed:[1],
+    hours:"周二至周日 8:30-17:30，17:00 停止入馆",
+    addr:"荆州市荆州区荆中路166号",
+    tip:"个人参观免预约，刷身份证或支付宝扫码入园，带证件就行。团队参观需提前电话预约。",
+    bookway:"个人免预约，刷身份证或支付宝扫“入园管理系统”入园；团队需提前致电 0716-8494574",
+    special:"", src:"荆州市人民政府《荆州博物馆暑期开放时间延长公告》"
+  },
+
+  /* ── 荆门 ── */
+  {
+    n:"荆门市博物馆", city:"荆门", free:"totally", book:false, indoor:true, tier:2,
+    dur:150, night:false, kid:true, local:false, closed:[1],
+    hours:"9:00-17:00，16:30 停止入场",
+    addr:"荆门市荆山大道28号（园博园旁）",
+    tip:"馆藏文物 6.2 万余件、国家珍贵文物 1000 余件，郭店楚简展厅是特色。持本人有效身份证件入馆即可参观各免费展览。",
+    bookway:"持本人有效身份证件入馆参观各免费展览",
+    special:"参观咨询 0724-2345932；公交：市内乘 21 路至漳河大道市博物馆站，下车向东步行约 400 米；提供免费寄存、轮椅与童车租借",
+    src:"荆门市博物馆官网《在线预约》"
+  },
+
+  /* ── 孝感 ── */
+  {
+    n:"孝感市博物馆", city:"孝感", free:"totally", book:false, indoor:true, tier:2,
+    dur:120, night:true, kid:true, local:false, closed:[1],
+    hours:"工作日（周二至周五）9:00-17:00，16:30 停止入馆；周末及法定节假日 9:00-18:30，18:00 停止入馆",
+    addr:"孝感市（详见馆方公告）",
+    tip:"周末比工作日多开放 1.5 小时，停入馆时间差 1.5 小时——按工作日的点去，周末可能白等也可能错过。到馆门口登记即可免费入馆，无需预约。",
+    bookway:"抵达场馆门口完成登记即可免费入馆参观，咨询电话 0712-2880065",
+    special:"延时开放期至 2026 年 11 月底；周一例行闭馆休整，若周一恰逢法定节假日则正常开放",
+    src:"孝感市文化和旅游局《孝感市博物馆延时开放公告》2026-09"
+  },
+
+  /* ── 鄂州 ── */
+  {
+    n:"鄂州市博物馆", city:"鄂州", free:"totally", book:false, indoor:true, tier:2,
+    dur:120, night:false, kid:true, local:false, closed:[1],
+    hours:"9:00-17:00，16:00 停止入馆",
+    addr:"鄂州市鄂城区寒溪路7号",
+    tip:"三国吴都文化核心展馆，古铜镜是最具辨识度的馆藏。凭有效证件免费入馆。",
+    bookway:"凭有效证件免费入馆",
+    special:"参观咨询 027-53018780",
+    src:"China Daily 政府专栏 + 鄂州市博物馆官网"
+  },
+
+  /* ── 黄冈 ── */
+  {
+    n:"黄冈市博物馆", city:"黄冈", free:"totally", book:false, indoor:true, tier:2,
+    dur:120, night:false, kid:true, local:false, closed:[1],
+    hours:"9:00-17:00，16:30 停止入场",
+    addr:"黄冈市黄州区明珠大道110号",
+    tip:"馆藏文物 41254 件，“镇馆之宝”为春秋许公买铜簠、东汉九联铜灯、明嘉靖官窑黄釉罐。与东坡赤壁等景点可同日安排。",
+    bookway:"免费开放，凭有效证件入馆",
+    special:"咨询电话 0713-8354810；2012 年新馆落成，建筑面积约 12000 平方米",
+    src:"黄冈市文旅局数字展馆平台"
+  },
+
+  /* ── 咸宁 ── */
+  {
+    n:"咸宁月亮湾濯足廊", city:"咸宁", free:"timed", book:false, indoor:false, tier:2,
+    dur:60, night:true, kid:false, local:true, closed:[],
+    hours:"每日约 18:00 开放至 21:00",
+    addr:"咸宁市潜山国家森林公园脚下淦河月亮湾畔",
+    tip:"免费露天温泉泡脚点，11 个泡池，日接待设计约 300 人次。只在这个时段开，白天去必落空。男女分区，有无障碍通道。",
+    bookway:"免费开放，无需预约",
+    special:"晚间开放，建议自备毛巾；高峰期曾出现日接待缺口 200-500 人次，尽量早去",
+    src:"湖北日报《11个露天泡池免费泡！咸宁月亮湾濯足廊重新改造开放》"
+  },
+
+  /* ── 随州 ── */
+  {
+    n:"随州市博物馆", city:"随州", free:"totally", book:false, indoor:true, tier:2,
+    dur:120, night:false, kid:true, local:false, closed:[1],
+    hours:"9:00-16:00",
+    addr:"随州市清河路二桥头",
+    tip:"注意闭馆时间是 16:00，比省内多数博物馆早一小时，下午去极易扑空。所有基本陈列与专题展览免费开放。",
+    bookway:"免费开放，咨询预约电话 0722-3810518",
+    special:"编钟乐舞演出：上午 10:30、下午 15:30，每场 20-30 分钟，需在编钟演奏厅旁售票处购票（演出为收费项目，与免费参观分开）",
+    src:"随州市博物馆官网《参观指南》"
+  },
+
+  /* ── 恩施 ── */
+  {
+    n:"恩施州博物馆", city:"恩施", free:"totally", book:false, indoor:true, tier:1,
+    dur:150, night:false, kid:true, local:false, closed:[1],
+    hours:"9:00-17:00（周一闭馆）",
+    addr:"恩施市金桂大道文化中心内",
+    tip:"国家一级博物馆，设《武陵足音》《恩施记忆》《生态恩施》三大基本陈列，是了解土家族苗族文化的主入口。",
+    bookway:"免费开放，预约电话 0718-8253696",
+    special:"乘 11 路、22 路、双层巴士至金桂大道硒都茶城站下车",
+    src:"恩施州人民政府《恩施州博物馆（纪念馆）》名录"
+  },
+  {
+    n:"恩施抗战历史陈列馆 / 叶挺将军囚居旧址", city:"恩施", free:"totally", book:false, indoor:true, tier:3,
+    dur:90, night:false, kid:true, local:true, closed:[1],
+    hours:"9:00-17:00（周一闭馆）",
+    addr:"恩施市公园街六号",
+    tip:"恩施市博物馆下辖的三处免费开放场馆，规模不大但主题集中，适合与州博物馆同日安排。",
+    bookway:"免费开放，电话 0718-8282662",
+    special:"含恩施抗战历史陈列馆、叶挺将军囚居旧址纪念馆、施州古城历史文化陈列展三处",
+    src:"恩施州人民政府《恩施州博物馆（纪念馆）》名录"
+  },
+
+  /* ── 仙桃 ── */
+  {
+    n:"仙桃市博物馆（陈友谅纪念馆 / 沔阳名人馆）", city:"仙桃", free:"totally", book:false, indoor:true, tier:3,
+    dur:90, night:false, kid:true, local:true, closed:[1],
+    hours:"9:00-17:00",
+    addr:"陈友谅纪念馆：沔街大道（元泰未来城对面）／ 沔阳名人馆：沔街大道与锦瑞路交汇处",
+    tip:"一馆两址，闭馆日为“每周一及农历除夕”，除夕也闭馆。两馆相距不远，可一次走完。",
+    bookway:"免费开放，无需预约",
+    special:"陈友谅纪念馆 0728-8878222，公交 18 路元泰未来城站；沔阳名人馆 0728-8878958，公交 18 路仙桃春天站",
+    src:"仙桃市人民政府《仙桃市图书馆、群艺馆、陈友谅纪念馆、沔阳名人馆服务指南》"
+  },
+
+  /* ── 潜江 ── */
+  {
+    n:"潜江市博物馆 / 曹禺纪念馆", city:"潜江", free:"totally", book:false, indoor:true, tier:3,
+    dur:90, night:false, kid:true, local:true, closed:[1],
+    hours:"9:00-17:00，周一闭馆",
+    addr:"潜江市东风路27号（曹禺公园内）",
+    tip:"国家三级博物馆，纪念戏剧家曹禺，位于曹禺公园内，可与公园同游。个人参观无需预约。",
+    bookway:"免费开放；个人参观无需预约，团体参观需预约",
+    special:"个人参观咨询 15607222220；团体参观电话 0728-6955661",
+    src:"湖北省国防教育基地名录（荆楚网）"
+  },
+
+  /* ── 天门 ── */
+  {
+    n:"天门市博物馆 / 陆羽纪念馆", city:"天门", free:"totally", book:false, indoor:true, tier:2,
+    dur:120, night:false, kid:true, local:true, closed:[1],
+    hours:"9:00-17:00，周一闭馆（节假日正常开放）",
+    addr:"天门市竟陵办事处西寺路14号（陆羽公园内）",
+    tip:"天门是石家河文化核心区，也是茶圣陆羽故里。陆羽纪念馆在陆羽公园内，占地 10000 平方米，可与公园同游。",
+    bookway:"免费开放",
+    special:"联系电话 0728-5359018；馆藏《陆子茶经》为明嘉靖二十一年竟陵版刻本，流传极少",
+    src:"湖北省爱国主义教育基地名录（荆楚网）"
+  },
+
+  /* ── 神农架 ── */
+  {
+    n:"神农架自然博物馆", city:"神农架", free:"totally", book:false, indoor:true, tier:2,
+    dur:120, night:false, kid:true, local:false, closed:[],
+    hours:"8:30-17:30",
+    addr:"神农架林区松柏镇博物馆路19号",
+    tip:"华中地区唯一的区域性自然类博物馆，李先念题写馆名。注意：这里周一至周日全天开放，与全省博物馆周一闭馆的惯例相反。",
+    bookway:"免费开放，电话 0719-3332235",
+    special:"距木鱼镇 93 公里、距神农架机场 79 公里，位置偏远，需专门安排交通",
+    src:"神农架林区人民政府《神农架博物馆（纪念馆）基本信息表》"
+  },
+  {
+    n:"神农架林业历史馆", city:"神农架", free:"totally", book:false, indoor:true, tier:3,
+    dur:90, night:true, kid:true, local:false, closed:[],
+    hours:"8:00-17:00（周日延时开放至 19:00）",
+    addr:"神农架林区红坪镇刘家屋场（209国道旁）",
+    tip:"周日延时到 19:00，是省内少见的夜间可参观场馆。展示神农架生态文明建设与林业发展史。",
+    bookway:"免费开放，电话 0719-3372345",
+    special:"", src:"神农架林区人民政府《神农架博物馆（纪念馆）基本信息表》"
+  },
+  {
+    n:"大九湖湿地馆", city:"神农架", free:"partial", book:false, indoor:true, tier:3,
+    dur:90, night:false, kid:true, local:false, closed:[],
+    hours:"8:30-17:30（周日正常开放）",
+    addr:"神农架林区大九湖镇大九湖村",
+    tip:"展馆本身免费，但位于大九湖景区内——进景区需另购门票与换乘，费用在景区不在展馆。",
+    bookway:"展馆免费开放，电话 0719-3473511",
+    special:"本馆位于大九湖景区内，进入景区需购买景区门票并换乘，展馆免费不等于全程零花费",
+    src:"神农架林区人民政府《神农架博物馆（纪念馆）基本信息表》"
+  }
+];
+
+const CITIES = [...new Set(SPOTS.map(s=>s.city))]
+  .sort((a,b)=>REGIONS.indexOf(a)-REGIONS.indexOf(b));
+
+const FREE_LABEL = {
+  totally:{t:"完全免费", c:"b-free"},
+  partial:{t:"主体免费·局部收费", c:"b-partial"},
+  cond:{t:"凭证免费", c:"b-partial"},
+  timed:{t:"限定时段免费", c:"b-timed"},
+  ticket:{t:"收费", c:"b-ticket"}
+};
+
+const $ = id => document.getElementById(id);
+const dayName = d => ["周日","周一","周二","周三","周四","周五","周六"][d];
+
+/* 初始化下拉框 */
+(function init(){
+  const c = $("city");
+  c.innerHTML = '<option value="any">全部城市</option>' +
+    CITIES.map(x=>`<option value="${x}">${x}</option>`).join("");
+})();
+
+/* 标签按钮状态 */
+const active = new Set();
+$("chips").addEventListener("click", e=>{
+  const b = e.target.closest(".chip");
+  if(!b) return;
+  const f = b.dataset.f;
+  if(active.has(f)){ active.delete(f); b.setAttribute("aria-pressed","false"); }
+  else { active.add(f); b.setAttribute("aria-pressed","true"); }
+});
+
+$("reset").addEventListener("click", ()=>{
+  $("city").value="any"; $("day").value="any"; $("duration").value="any";
+  active.clear();
+  document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed","false"));
+  run();
+});
+
+$("go").addEventListener("click", run);
+
+/* 核心理由生成：说明为什么可去 / 为什么被排除 */
+function judge(s, day, durMax){
+  const reasons = [];
+  let ok = true;
+
+  // 闭馆判定
+  if(day !== null && s.closed.includes(day)){
+    ok = false;
+    reasons.push(`${dayName(day)}闭馆`);
+  }
+  // 分区错峰特例
+  if(s.closedNote && day !== null){
+    const m = s.closedNote;
+    if(day===1) reasons.push("南区周一闭馆，北区（红楼）仍开放");
+    if(day===2) reasons.push("北区周二闭馆，南区仍开放");
+  }
+  // 时长判定
+  if(durMax !== null && s.dur > durMax){
+    ok = false;
+    reasons.push(`建议停留约 ${Math.round(s.dur/60)} 小时，超出你给的 ${Math.round(durMax/60)} 小时`);
+  }
+  // 时段限定
+  if(s.free === "timed"){
+    reasons.push("仅在晚间开放，白天前往会落空");
+  }
+  return {ok, reasons};
+}
+
+function run(){
+  const city = $("city").value;
+  const dv = $("day").value;
+  const day = dv === "any" ? null : parseInt(dv,10);
+  const du = $("duration").value;
+  const durMax = du === "any" ? null : parseInt(du,10);
+
+  let list = SPOTS.filter(s => city==="any" || s.city===city);
+
+  // 标签过滤
+  if(active.has("nobook"))  list = list.filter(s=>!s.book);
+  if(active.has("totally")) list = list.filter(s=>s.free!=="ticket");
+  if(active.has("indoor"))  list = list.filter(s=>s.indoor);
+  if(active.has("night"))   list = list.filter(s=>s.night || s.free==="timed");
+  if(active.has("kid"))     list = list.filter(s=>s.kid);
+  if(active.has("free"))    list = list.filter(s=>s.local);
+
+  // 排序权重：免费程度 → 数据完整度 → 馆藏分量(tier) → 停留时长
+  // 说明：带 note（数据存疑）的条目下沉，避免首屏出现信息最不扎实的馆
+  const RANK = { totally:0, partial:1, cond:2, timed:3, ticket:4 };
+  const judged = list.map(s=>({s, ...judge(s, day, durMax)}));
+  const pass = judged.filter(x=>x.ok).sort((a,b)=>{
+    const r = (RANK[a.s.free]??9) - (RANK[b.s.free]??9);
+    if(r !== 0) return r;
+    const na = a.s.note?1:0, nb = b.s.note?1:0;
+    if(na !== nb) return na - nb;           // 数据存疑的下沉
+    const ta = a.s.tier??3, tb = b.s.tier??3;
+    if(ta !== tb) return ta - tb;           // 馆藏分量重的优先
+    return a.s.dur - b.s.dur;
+  });
+  const drop = judged.filter(x=>!x.ok);
+
+  // 结果头
+  const bits = [];
+  bits.push(city==="any" ? "湖北全省" : city);
+  if(day!==null) bits.push(dayName(day));
+  if(durMax!==null) bits.push(`${Math.round(durMax/60)} 小时内`);
+  if(active.size) bits.push([...active].map(f=>({
+    nobook:"免预约", totally:"完全免费", indoor:"室内",
+    night:"夜间", kid:"带娃", free:"本地人常去"
+  })[f]).join(" + "));
+  $("rTitle").textContent = "筛选结果";
+  $("rMeta").innerHTML = `${bits.join(" · ")} — 可去 <span class="hl">${pass.length}</span> 个` +
+    (drop.length ? `，另有 ${drop.length} 个因条件不符被排除` : "");
+
+  const box = $("list");
+  if(!pass.length){
+    box.innerHTML = `<div class="empty">
+      <div class="big">没有完全匹配的景点</div>
+      试着放宽日期或时长条件，或取消部分标签筛选。<br>
+      ${drop.length ? `当前有 ${drop.length} 个景点因闭馆或时长原因被排除。` : ""}
+    </div>`;
+  } else {
+    box.innerHTML = pass.map((x,i)=>card(x.s, x.reasons, i)).join("");
+  }
+
+  // 被排除但仍列出原因，避免用户误以为漏了
+  if(drop.length){
+    box.insertAdjacentHTML("beforeend", `
+      <div class="result-head" style="margin:26px 0 10px">
+        <h2 style="font-size:14.5px;color:var(--ink-3)">本次被排除的（说明原因）</h2>
+      </div>` +
+      drop.map(x=>card(x.s, x.reasons, 0, true)).join("")
+    );
+  }
+}
+
+function card(s, reasons, i, dim){
+  const fl = FREE_LABEL[s.free] || FREE_LABEL.totally;
+  const badges = [
+    `<span class="badge ${fl.c}">${fl.t}</span>`,
+    s.book
+      ? `<span class="badge b-book">需预约</span>`
+      : `<span class="badge b-plain">免预约</span>`,
+    s.indoor ? `<span class="badge b-plain">室内</span>` : `<span class="badge b-plain">户外</span>`
+  ].join("");
+
+  const closedTxt = s.closedNote
+    ? s.closedNote
+    : (s.closed.length ? `${s.closed.map(dayName).join("、")}闭馆（法定节假日除外）` : "全年开放（春节等特殊时段除外）");
+
+  const warn = s.free==="partial" && s.special
+    ? `<div class="warn"><b>注意：</b>${s.special}</div>`
+    : (s.special && s.free==="timed" ? `<div class="warn"><b>注意：</b>${s.special}</div>` : "");
+
+  const noteBox = s.note
+    ? `<div class="warn" style="background:#fdecea;border-left-color:#a3341f;color:#7d2a19"><b>数据存疑：</b>${s.note}</div>`
+    : "";
+
+  const reasonTxt = reasons && reasons.length && !dim
+    ? `<div class="warn" style="background:#eef4fb;border-left-color:#1d4e89;color:#1d3f6b"><b>提示：</b>${reasons.join("；")}</div>`
+    : "";
+
+  const srcTxt = s.src
+    ? `<div class="src">来源：${s.src}</div>`
+    : "";
+
+  return `<article class="card" style="animation-delay:${i*32}ms${dim?';opacity:.62':''}">
+    <div class="card-top">
+      <h3>${s.n}<span class="city">${s.city}</span></h3>
+    </div>
+    <div class="badges">${badges}</div>
+    <div class="rows">
+      <div class="row"><div class="k">开放时间</div><div class="v">${s.hours}</div></div>
+      <div class="row"><div class="k">闭馆日</div><div class="v">${closedTxt}</div></div>
+      <div class="row"><div class="k">怎么进</div><div class="v">${s.bookway}</div></div>
+      <div class="row"><div class="k">地址</div><div class="v">${s.addr}</div></div>
+      <div class="row"><div class="k">提醒</div><div class="v">${s.tip}</div></div>
+      ${s.special && s.free!=="partial" && s.free!=="timed"
+        ? `<div class="row"><div class="k">特别说明</div><div class="v">${s.special}</div></div>` : ""}
+    </div>
+    ${warn}${noteBox}${reasonTxt}${srcTxt}
+  </article>`;
+}
+
+/* 首屏直接出结果，打开就能看见东西 */
+(function boot(){
+  // 覆盖统计注入页脚
+  const cov = document.getElementById("coverage");
+  if(cov){
+    const have = CITIES.length;
+    const miss = REGIONS.filter(r=>!CITIES.includes(r));
+    cov.innerHTML = `已收录 <b>${have}</b> 个市州林区、共 <b>${SPOTS.length}</b> 个免费景点` +
+      (miss.length ? `；${miss.join("、")}暂未收录到可核实的官方数据。` : "，湖北全省 17 个市州林区全覆盖。");
+  }
+
+  // 支持 URL 参数预置筛选状态，便于分享具体查询（如 ?city=武汉&day=1&f=nobook,indoor）
+  const q = new URLSearchParams(location.search);
+  const c = q.get("city"); if(c){ $("city").value = c; }
+  const d = q.get("day");  if(d){ $("day").value = d; }
+  const t = q.get("dur");  if(t){ $("duration").value = t; }
+  const f = q.get("f");
+  if(f){
+    f.split(",").forEach(k=>{
+      const b = document.querySelector(`.chip[data-f="${k}"]`);
+      if(b){ active.add(k); b.setAttribute("aria-pressed","true"); }
+    });
+  }
+  run();
+})();
+</script>
+</body>
+</html>
